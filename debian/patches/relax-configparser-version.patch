@@ -1,0 +1,15 @@
+Description: Relax required version of configparser to allow 3.5.0b2 version
+Author: Ondřej Nový <onovy@debian.org>
+Forwarded: not-needed
+
+--- a/setup.cfg
++++ b/setup.cfg
+@@ -21,7 +21,7 @@
+ 	zipp>=0.5
+ 	pathlib2; python_version < '3'
+ 	contextlib2; python_version < '3'
+-	configparser>=3.5; python_version < '3'
++	configparser; python_version < '3'
+ packages = find:
+ 
+ [options.package_data]

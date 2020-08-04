@@ -1,0 +1,22 @@
+Description: Skip test_zip tests if there is not importlib_resources module
+Author: Ondřej Nový <onovy@debian.org>
+Forwarded: not-needed
+
+--- a/importlib_metadata/tests/test_zip.py
++++ b/importlib_metadata/tests/test_zip.py
+@@ -6,7 +6,14 @@
+ try:
+     from importlib.resources import path
+ except ImportError:
+-    from importlib_resources import path
++    try:
++        from importlib_resources import path
++    except ImportError:
++        path = None
++
++def setUpModule():
++    if not path:
++        raise unittest.SkipTest("importlib_resources not found")
+ 
+ try:
+     from contextlib import ExitStack
