@@ -1,0 +1,7 @@
+Tests: unittests
+Depends:
+ python3-all,
+ python3-importlib-metadata,
+ python3-packaging,
+ python3-pyfakefs,
+ python3-toml,

@@ -1,2 +1,0 @@
-skip-if-not-importlib_resources.patch
-relax-configparser-version.patch

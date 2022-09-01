@@ -1,13 +1,13 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: importlib_metadata
-Source: https://pypi.org/project/importlib-metadata/ 
+Source: https://pypi.org/project/importlib-metadata/
 
 Files: *
 Copyright: (c) 2017-2019 Jason R. Coombs, Barry Warsaw
 License: Apache-2
 
 Files: debian/*
-Copyright: (c) 2019, Ondřej Nový <onovy@debian.org>
+Copyright: (c) 2019-2020, Ondřej Nový <onovy@debian.org>
 License: Apache-2
 
 License: Apache-2
