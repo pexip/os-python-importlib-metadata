@@ -1,14 +1,51 @@
+python-importlib-metadata (4.12.0-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+  * Drop d/patches/skip-test_find_local.patch, upstream code removed in new
+    release.
+  * Build-depend on pybuild-plugin-pyproject.
+  * Set Standards-Version to 4.6.1, no changes needed.
+
+ -- Emanuele Rocca <ema@debian.org>  Thu, 01 Sep 2022 14:28:13 +0200
+
+python-importlib-metadata (4.6.4-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+
+ -- Stefano Rivera <stefanor@debian.org>  Sat, 21 Aug 2021 17:35:22 -0700
+
+python-importlib-metadata (4.0.1-1) experimental; urgency=medium
+
+  * Team upload.
+
+  [ Ondřej Nový ]
+  * d/copyright: Bump my copyright year.
+  * d/control: Update Maintainer field with new Debian Python Team
+    contact address.
+  * d/control: Update Vcs-* fields with new Debian Python Team Salsa
+    layout.
+
+  [ Stefano Rivera ]
+  * New upstream release.
+  * Drop patches, no longer needed with current Python 3.
+  * Build-Depend on python3-toml for setup.py.
+  * Update homepage and metadata to github.
+  * Patch: Skip test_find_local() which requires Internet access.
+  * Remove PYBUILD_AFTER_INSTALL cleanup, tests and docs are no longer within
+    the module.
+  * Add autopkgtests that run the upstream test suite.
+  * Bump Standards-Version to 4.5.1, no changes needed.
+  * Bump watch file version to 4.
+
+ -- Stefano Rivera <stefanor@debian.org>  Mon, 17 May 2021 16:27:09 -0400
+
 python-importlib-metadata (1.6.0-2~bpo10+1pexip1) pexip; urgency=medium
 
   * Prepare Pexip packaging
 
  -- Huw Jones <huw@pexip.com>  Mon, 22 Feb 2021 17:50:11 +0000
-
-python-importlib-metadata (1.6.0-2~bpo10+1) buster-backports; urgency=medium
-
-  * Rebuild for buster-backports.
-
- -- Paul Wise <pabs@debian.org>  Tue, 04 Aug 2020 11:29:51 +0800
 
 python-importlib-metadata (1.6.0-2) unstable; urgency=medium
 

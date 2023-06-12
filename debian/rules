@@ -1,9 +1,6 @@
 #!/usr/bin/make -f
 
 export PYBUILD_NAME=importlib-metadata
-export PYBUILD_AFTER_INSTALL = \
-	rm -r '{destdir}/{install_dir}/importlib_metadata/tests' && \
-	rm -r '{destdir}/{install_dir}/importlib_metadata/docs'
 
 %:
 	dh $@ --with python3 --buildsystem=pybuild
