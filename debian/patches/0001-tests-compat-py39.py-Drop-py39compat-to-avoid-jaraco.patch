@@ -1,0 +1,41 @@
+From: Boyuan Yang <byang@debian.org>
+Date: Sat, 1 Jun 2024 22:14:56 -0400
+Subject: tests/compat/py39.py: Drop py39compat to avoid jaraco.test
+
+We directly use import_helper and os_helper from python test.support
+library. This drops compatibility with Python 3.9 or earlier, but
+avoids the usage of jaraco.test library which is not packaged yet.
+
+Forwarded: not-needed
+Last-Update: 2024-09-17
+---
+ tests/compat/py39.py | 21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
+
+diff --git a/tests/compat/py39.py b/tests/compat/py39.py
+index 4e45d7c..e391335 100644
+--- a/tests/compat/py39.py
++++ b/tests/compat/py39.py
+@@ -1,8 +1,15 @@
+-from jaraco.test.cpython import from_test_support, try_import
++# Debian-specific: Drop compatibility with python 3.10 or earlier
++# Do not use jaraco.test, not packaged
+ 
+-os_helper = try_import('os_helper') or from_test_support(
+-    'FS_NONASCII', 'skip_unless_symlink', 'temp_dir'
+-)
+-import_helper = try_import('import_helper') or from_test_support(
+-    'modules_setup', 'modules_cleanup'
+-)
++# from jaraco.test.cpython import from_test_support, try_import
++
++#os_helper = try_import('os_helper') or from_test_support(
++#    'FS_NONASCII', 'skip_unless_symlink', 'temp_dir'
++#)
++#import_helper = try_import('import_helper') or from_test_support(
++#    'modules_setup', 'modules_cleanup'
++#)
++
++# Debian-specific: Use Python standard library
++from test.support import os_helper
++from test.support import import_helper

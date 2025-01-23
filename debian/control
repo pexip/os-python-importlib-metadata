@@ -3,10 +3,10 @@ Section: python
 Priority: optional
 Maintainer: Debian Python Team <team+python@tracker.debian.org>
 Uploaders:
- Ondřej Nový <onovy@debian.org>,
+ Boyuan Yang <byang@debian.org>,
 Build-Depends:
  debhelper-compat (= 13),
- dh-python,
+ dh-sequence-python3,
  pybuild-plugin-pyproject,
  python3-all,
  python3-packaging,
@@ -15,7 +15,7 @@ Build-Depends:
  python3-setuptools-scm,
  python3-toml,
  python3-zipp (>= 0.5),
-Standards-Version: 4.6.1
+Standards-Version: 4.7.0
 Vcs-Browser: https://salsa.debian.org/python-team/packages/python-importlib-metadata
 Vcs-Git: https://salsa.debian.org/python-team/packages/python-importlib-metadata.git
 Homepage: https://github.com/python/importlib_metadata
@@ -27,6 +27,7 @@ Architecture: all
 Depends:
  ${misc:Depends},
  ${python3:Depends},
+Multi-Arch: foreign
 Description: library to access the metadata for a Python package - Python 3.x
  Provides an API for accessing an installed package’s metadata, such as its
  entry points or its top-level name. This functionality intends to replace
