@@ -1,49 +1,30 @@
-import os
-import sys
-import copy
-import shutil
-import pathlib
-import tempfile
-import textwrap
-import functools
 import contextlib
+import copy
+import functools
+import json
+import pathlib
+import shutil
+import sys
+import textwrap
 
-from .py39compat import FS_NONASCII
-from typing import Dict, Union
+from . import _path
+from ._path import FilesSpec
+from .compat.py39 import os_helper
+from .compat.py312 import import_helper
 
-try:
-    from importlib import resources  # type: ignore
-
-    getattr(resources, 'files')
-    getattr(resources, 'as_file')
-except (ImportError, AttributeError):
-    import importlib_resources as resources  # type: ignore
-
-
-@contextlib.contextmanager
-def tempdir():
-    tmpdir = tempfile.mkdtemp()
-    try:
-        yield pathlib.Path(tmpdir)
-    finally:
-        shutil.rmtree(tmpdir)
+if sys.version_info >= (3, 9):
+    from importlib import resources
+else:
+    import importlib_resources as resources
 
 
 @contextlib.contextmanager
-def save_cwd():
-    orig = os.getcwd()
-    try:
-        yield
-    finally:
-        os.chdir(orig)
-
-
-@contextlib.contextmanager
-def tempdir_as_cwd():
-    with tempdir() as tmp:
-        with save_cwd():
-            os.chdir(str(tmp))
-            yield tmp
+def tmp_path():
+    """
+    Like os_helper.temp_dir, but yields a pathlib.Path.
+    """
+    with os_helper.temp_dir() as path:
+        yield pathlib.Path(path)
 
 
 @contextlib.contextmanager
@@ -64,7 +45,7 @@ class Fixtures:
 class SiteDir(Fixtures):
     def setUp(self):
         super().setUp()
-        self.site_dir = self.fixtures.enter_context(tempdir())
+        self.site_dir = self.fixtures.enter_context(tmp_path())
 
 
 class OnSysPath(Fixtures):
@@ -80,15 +61,19 @@ class OnSysPath(Fixtures):
     def setUp(self):
         super().setUp()
         self.fixtures.enter_context(self.add_sys_path(self.site_dir))
+        self.fixtures.enter_context(import_helper.isolated_modules())
 
 
-# Except for python/mypy#731, prefer to define
-# FilesDef = Dict[str, Union['FilesDef', str]]
-FilesDef = Dict[str, Union[Dict[str, Union[Dict[str, str], str]], str]]
+class SiteBuilder(SiteDir):
+    def setUp(self):
+        super().setUp()
+        for cls in self.__class__.mro():
+            with contextlib.suppress(AttributeError):
+                build_files(cls.files, prefix=self.site_dir)
 
 
-class DistInfoPkg(OnSysPath, SiteDir):
-    files: FilesDef = {
+class DistInfoPkg(OnSysPath, SiteBuilder):
+    files: FilesSpec = {
         "distinfo_pkg-1.0.0.dist-info": {
             "METADATA": """
                 Name: distinfo-pkg
@@ -114,10 +99,6 @@ class DistInfoPkg(OnSysPath, SiteDir):
             """,
     }
 
-    def setUp(self):
-        super().setUp()
-        build_files(DistInfoPkg.files, self.site_dir)
-
     def make_uppercase(self):
         """
         Rewrite metadata with everything uppercase.
@@ -129,8 +110,27 @@ class DistInfoPkg(OnSysPath, SiteDir):
         build_files(files, self.site_dir)
 
 
-class DistInfoPkgWithDot(OnSysPath, SiteDir):
-    files: FilesDef = {
+class DistInfoPkgEditable(DistInfoPkg):
+    """
+    Package with a PEP 660 direct_url.json.
+    """
+
+    some_hash = '524127ce937f7cb65665130c695abd18ca386f60bb29687efb976faa1596fdcc'
+    files: FilesSpec = {
+        'distinfo_pkg-1.0.0.dist-info': {
+            'direct_url.json': json.dumps({
+                "archive_info": {
+                    "hash": f"sha256={some_hash}",
+                    "hashes": {"sha256": f"{some_hash}"},
+                },
+                "url": "file:///path/to/distinfo_pkg-1.0.0.editable-py3-none-any.whl",
+            })
+        },
+    }
+
+
+class DistInfoPkgWithDot(OnSysPath, SiteBuilder):
+    files: FilesSpec = {
         "pkg_dot-1.0.0.dist-info": {
             "METADATA": """
                 Name: pkg.dot
@@ -139,13 +139,9 @@ class DistInfoPkgWithDot(OnSysPath, SiteDir):
         },
     }
 
-    def setUp(self):
-        super().setUp()
-        build_files(DistInfoPkgWithDot.files, self.site_dir)
 
-
-class DistInfoPkgWithDotLegacy(OnSysPath, SiteDir):
-    files: FilesDef = {
+class DistInfoPkgWithDotLegacy(OnSysPath, SiteBuilder):
+    files: FilesSpec = {
         "pkg.dot-1.0.0.dist-info": {
             "METADATA": """
                 Name: pkg.dot
@@ -160,19 +156,13 @@ class DistInfoPkgWithDotLegacy(OnSysPath, SiteDir):
         },
     }
 
-    def setUp(self):
-        super().setUp()
-        build_files(DistInfoPkgWithDotLegacy.files, self.site_dir)
+
+class DistInfoPkgOffPath(SiteBuilder):
+    files = DistInfoPkg.files
 
 
-class DistInfoPkgOffPath(SiteDir):
-    def setUp(self):
-        super().setUp()
-        build_files(DistInfoPkg.files, self.site_dir)
-
-
-class EggInfoPkg(OnSysPath, SiteDir):
-    files: FilesDef = {
+class EggInfoPkg(OnSysPath, SiteBuilder):
+    files: FilesSpec = {
         "egginfo_pkg.egg-info": {
             "PKG-INFO": """
                 Name: egginfo-pkg
@@ -206,13 +196,122 @@ class EggInfoPkg(OnSysPath, SiteDir):
             """,
     }
 
-    def setUp(self):
-        super().setUp()
-        build_files(EggInfoPkg.files, prefix=self.site_dir)
+
+class EggInfoPkgPipInstalledNoToplevel(OnSysPath, SiteBuilder):
+    files: FilesSpec = {
+        "egg_with_module_pkg.egg-info": {
+            "PKG-INFO": "Name: egg_with_module-pkg",
+            # SOURCES.txt is made from the source archive, and contains files
+            # (setup.py) that are not present after installation.
+            "SOURCES.txt": """
+                egg_with_module.py
+                setup.py
+                egg_with_module_pkg.egg-info/PKG-INFO
+                egg_with_module_pkg.egg-info/SOURCES.txt
+                egg_with_module_pkg.egg-info/top_level.txt
+            """,
+            # installed-files.txt is written by pip, and is a strictly more
+            # accurate source than SOURCES.txt as to the installed contents of
+            # the package.
+            "installed-files.txt": """
+                ../egg_with_module.py
+                PKG-INFO
+                SOURCES.txt
+                top_level.txt
+            """,
+            # missing top_level.txt (to trigger fallback to installed-files.txt)
+        },
+        "egg_with_module.py": """
+            def main():
+                print("hello world")
+            """,
+    }
 
 
-class EggInfoFile(OnSysPath, SiteDir):
-    files: FilesDef = {
+class EggInfoPkgPipInstalledExternalDataFiles(OnSysPath, SiteBuilder):
+    files: FilesSpec = {
+        "egg_with_module_pkg.egg-info": {
+            "PKG-INFO": "Name: egg_with_module-pkg",
+            # SOURCES.txt is made from the source archive, and contains files
+            # (setup.py) that are not present after installation.
+            "SOURCES.txt": """
+                egg_with_module.py
+                setup.py
+                egg_with_module.json
+                egg_with_module_pkg.egg-info/PKG-INFO
+                egg_with_module_pkg.egg-info/SOURCES.txt
+                egg_with_module_pkg.egg-info/top_level.txt
+            """,
+            # installed-files.txt is written by pip, and is a strictly more
+            # accurate source than SOURCES.txt as to the installed contents of
+            # the package.
+            "installed-files.txt": """
+                ../../../etc/jupyter/jupyter_notebook_config.d/relative.json
+                /etc/jupyter/jupyter_notebook_config.d/absolute.json
+                ../egg_with_module.py
+                PKG-INFO
+                SOURCES.txt
+                top_level.txt
+            """,
+            # missing top_level.txt (to trigger fallback to installed-files.txt)
+        },
+        "egg_with_module.py": """
+            def main():
+                print("hello world")
+            """,
+    }
+
+
+class EggInfoPkgPipInstalledNoModules(OnSysPath, SiteBuilder):
+    files: FilesSpec = {
+        "egg_with_no_modules_pkg.egg-info": {
+            "PKG-INFO": "Name: egg_with_no_modules-pkg",
+            # SOURCES.txt is made from the source archive, and contains files
+            # (setup.py) that are not present after installation.
+            "SOURCES.txt": """
+                setup.py
+                egg_with_no_modules_pkg.egg-info/PKG-INFO
+                egg_with_no_modules_pkg.egg-info/SOURCES.txt
+                egg_with_no_modules_pkg.egg-info/top_level.txt
+            """,
+            # installed-files.txt is written by pip, and is a strictly more
+            # accurate source than SOURCES.txt as to the installed contents of
+            # the package.
+            "installed-files.txt": """
+                PKG-INFO
+                SOURCES.txt
+                top_level.txt
+            """,
+            # top_level.txt correctly reflects that no modules are installed
+            "top_level.txt": b"\n",
+        },
+    }
+
+
+class EggInfoPkgSourcesFallback(OnSysPath, SiteBuilder):
+    files: FilesSpec = {
+        "sources_fallback_pkg.egg-info": {
+            "PKG-INFO": "Name: sources_fallback-pkg",
+            # SOURCES.txt is made from the source archive, and contains files
+            # (setup.py) that are not present after installation.
+            "SOURCES.txt": """
+                sources_fallback.py
+                setup.py
+                sources_fallback_pkg.egg-info/PKG-INFO
+                sources_fallback_pkg.egg-info/SOURCES.txt
+            """,
+            # missing installed-files.txt (i.e. not installed by pip) and
+            # missing top_level.txt (to trigger fallback to SOURCES.txt)
+        },
+        "sources_fallback.py": """
+            def main():
+                print("hello world")
+            """,
+    }
+
+
+class EggInfoFile(OnSysPath, SiteBuilder):
+    files: FilesSpec = {
         "egginfo_file.egg-info": """
             Metadata-Version: 1.0
             Name: egginfo_file
@@ -227,58 +326,35 @@ class EggInfoFile(OnSysPath, SiteDir):
             """,
     }
 
-    def setUp(self):
-        super().setUp()
-        build_files(EggInfoFile.files, prefix=self.site_dir)
+
+# dedent all text strings before writing
+orig = _path.create.registry[str]
+_path.create.register(str, lambda content, path: orig(DALS(content), path))
 
 
-def build_files(file_defs, prefix=pathlib.Path()):
-    """Build a set of files/directories, as described by the
+build_files = _path.build
 
-    file_defs dictionary.  Each key/value pair in the dictionary is
-    interpreted as a filename/contents pair.  If the contents value is a
-    dictionary, a directory is created, and the dictionary interpreted
-    as the files within it, recursively.
 
-    For example:
+def build_record(file_defs):
+    return ''.join(f'{name},,\n' for name in record_names(file_defs))
 
-    {"README.txt": "A README file",
-     "foo": {
-        "__init__.py": "",
-        "bar": {
-            "__init__.py": "",
-        },
-        "baz.py": "# Some code",
-     }
-    }
-    """
-    for name, contents in file_defs.items():
-        full_name = prefix / name
-        if isinstance(contents, dict):
-            full_name.mkdir()
-            build_files(contents, prefix=full_name)
-        else:
-            if isinstance(contents, bytes):
-                with full_name.open('wb') as f:
-                    f.write(contents)
-            else:
-                with full_name.open('w', encoding='utf-8') as f:
-                    f.write(DALS(contents))
+
+def record_names(file_defs):
+    recording = _path.Recording()
+    _path.build(file_defs, recording)
+    return recording.record
 
 
 class FileBuilder:
     def unicode_filename(self):
-        return FS_NONASCII or self.skip("File system does not support non-ascii.")
+        return os_helper.FS_NONASCII or self.skip(
+            "File system does not support non-ascii."
+        )
 
 
 def DALS(str):
     "Dedent and left-strip"
     return textwrap.dedent(str).lstrip()
-
-
-class NullFinder:
-    def find_module(self, name):
-        pass
 
 
 class ZipFixtures:

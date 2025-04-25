@@ -1,3 +1,281 @@
+v8.6.1
+======
+
+Bugfixes
+--------
+
+- Fixed indentation logic to also honor blank lines.
+
+
+v8.6.0
+======
+
+Features
+--------
+
+- Add support for rendering metadata where some fields have newlines (python/cpython#119650).
+
+
+v8.5.0
+======
+
+Features
+--------
+
+- Deferred import of zipfile.Path (#502)
+- Deferred import of json (#503)
+- Rely on zipp overlay for zipfile.Path.
+
+
+v8.4.0
+======
+
+Features
+--------
+
+- Deferred import of inspect for import performance. (#499)
+
+
+v8.3.0
+======
+
+Features
+--------
+
+- Disallow passing of 'dist' to EntryPoints.select.
+
+
+v8.2.0
+======
+
+Features
+--------
+
+- Add SimplePath to importlib_metadata.__all__. (#494)
+
+
+v8.1.0
+======
+
+Features
+--------
+
+- Prioritize valid dists to invalid dists when retrieving by name. (#489)
+
+
+v8.0.0
+======
+
+Deprecations and Removals
+-------------------------
+
+- Message.__getitem__ now raises a KeyError on missing keys. (#371)
+- Removed deprecated support for Distribution subclasses not implementing abstract methods.
+
+
+v7.2.1
+======
+
+Bugfixes
+--------
+
+- When reading installed files from an egg, use ``relative_to(walk_up=True)`` to honor files installed outside of the installation root. (#455)
+
+
+v7.2.0
+======
+
+Features
+--------
+
+- Deferred select imports in for speedup (python/cpython#109829).
+- Updated fixtures for python/cpython#120801.
+
+
+v7.1.0
+======
+
+Features
+--------
+
+- Improve import time (python/cpython#114664).
+
+
+Bugfixes
+--------
+
+- Make MetadataPathFinder.find_distributions a classmethod for consistency with CPython. Closes #484. (#484)
+- Allow ``MetadataPathFinder.invalidate_caches`` to be called as a classmethod.
+
+
+v7.0.2
+======
+
+No significant changes.
+
+
+v7.0.1
+======
+
+Bugfixes
+--------
+
+- Corrected the interface for SimplePath to encompass the expectations of locate_file and PackagePath.
+- Fixed type annotations to allow strings.
+
+
+v7.0.0
+======
+
+Deprecations and Removals
+-------------------------
+
+- Removed EntryPoint access by numeric index (tuple behavior).
+
+
+v6.11.0
+=======
+
+Features
+--------
+
+- Added ``Distribution.origin`` supplying the ``direct_url.json`` in a ``SimpleNamespace``. (#404)
+
+
+v6.10.0
+=======
+
+Features
+--------
+
+- Added diagnose script. (#461)
+
+
+v6.9.0
+======
+
+Features
+--------
+
+- Added EntryPoints.__repr__ (#473)
+
+
+v6.8.0
+======
+
+Features
+--------
+
+- Require Python 3.8 or later.
+
+
+v6.7.0
+======
+
+* #453: When inferring top-level names that are importable for
+  distributions in ``package_distributions``, now symlinks to
+  other directories are honored.
+
+v6.6.0
+======
+
+* #449: Expanded type annotations.
+
+v6.5.1
+======
+
+* python/cpython#103661: Removed excess error suppression in
+  ``_read_files_egginfo_installed`` and fixed path handling
+  on Windows.
+
+v6.5.0
+======
+
+* #422: Removed ABC metaclass from ``Distribution`` and instead
+  deprecated construction of ``Distribution`` objects without
+  concrete methods.
+
+v6.4.1
+======
+
+* Updated docs with tweaks from upstream CPython.
+
+v6.4.0
+======
+
+* Consolidated some behaviors in tests around ``_path``.
+* Added type annotation for ``Distribution.read_text``.
+
+v6.3.0
+======
+
+* #115: Support ``installed-files.txt`` for ``Distribution.files``
+  when present.
+
+v6.2.1
+======
+
+* #442: Fixed issue introduced in v6.1.0 where non-importable
+  names (metadata dirs) began appearing in
+  ``packages_distributions``.
+
+v6.2.0
+======
+
+* #384: ``PackageMetadata`` now stipulates an additional ``get``
+  method allowing for easy querying of metadata keys that may not
+  be present.
+
+v6.1.0
+======
+
+* #428: ``packages_distributions`` now honors packages and modules
+  with Python modules that not ``.py`` sources (e.g. ``.pyc``,
+  ``.so``).
+
+v6.0.1
+======
+
+* #434: Expand protocol for ``PackageMetadata.get_all`` to match
+  the upstream implementation of ``email.message.Message.get_all``
+  in python/typeshed#9620.
+
+v6.0.0
+======
+
+* #419: Declared ``Distribution`` as an abstract class, enforcing
+  definition of abstract methods in instantiated subclasses. It's no
+  longer possible to instantiate a ``Distribution`` or any subclasses
+  unless they define the abstract methods.
+
+  Please comment in the issue if this change breaks any projects.
+  This change will likely be rolled back if it causes significant
+  disruption.
+
+v5.2.0
+======
+
+* #371: Deprecated expectation that ``PackageMetadata.__getitem__``
+  will return ``None`` for missing keys. In the future, it will raise a
+  ``KeyError``.
+
+v5.1.0
+======
+
+* #415: Instrument ``SimplePath`` with generic support.
+
+v5.0.0
+======
+
+* #97, #284, #300: Removed compatibility shims for deprecated entry
+  point interfaces.
+
+v4.13.0
+=======
+
+* #396: Added compatibility for ``PathDistributions`` originating
+  from Python 3.8 and 3.9.
+
 v4.12.0
 =======
 
@@ -14,6 +292,10 @@ v4.11.4
   loaded from the stem of the filename are also normalized, ensuring
   duplicate entry points by packages varying only by non-normalized
   name are hidden.
+
+Note (#459): This change had a backward-incompatible effect for
+any installers that created metadata in the filesystem with dashes
+in the package names (not replaced by underscores).
 
 v4.11.3
 =======
