@@ -1,3 +1,68 @@
+python-importlib-metadata (8.6.1-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Boyuan Yang <byang@debian.org>  Thu, 23 Jan 2025 09:34:00 -0500
+
+python-importlib-metadata (8.5.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/patches: Refresh patches.
+
+ -- Boyuan Yang <byang@debian.org>  Tue, 17 Sep 2024 13:53:07 -0400
+
+python-importlib-metadata (8.4.0-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Boyuan Yang <byang@debian.org>  Sat, 24 Aug 2024 09:52:24 -0400
+
+python-importlib-metadata (8.2.0-2) unstable; urgency=medium
+
+  * Team upload.
+  * Mark as Multi-Arch: foreign (closes: #1078041).
+
+ -- Colin Watson <cjwatson@debian.org>  Tue, 06 Aug 2024 12:52:49 +0100
+
+python-importlib-metadata (8.2.0-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Boyuan Yang <byang@debian.org>  Fri, 26 Jul 2024 23:40:00 -0400
+
+python-importlib-metadata (8.0.0-2) unstable; urgency=medium
+
+  * debian/patches/: Add Forwarded: not-needed mark to fix lintian
+    warning.
+  * debian/rules: Use default automatic test execution instead of
+    manual invocation.
+
+ -- Boyuan Yang <byang@debian.org>  Thu, 04 Jul 2024 22:22:12 -0400
+
+python-importlib-metadata (8.0.0-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Boyuan Yang <byang@debian.org>  Wed, 26 Jun 2024 11:04:23 -0400
+
+python-importlib-metadata (7.1.0-1) unstable; urgency=medium
+
+  [ Ondřej Nový ]
+  * Remove myself from Uploaders.
+
+  [ Boyuan Yang ]
+  * Add myself into the uploaders list.
+  * New upstream release.
+  * debian/control: Use dh-sequence-python3 as build-dependency.
+  * debian/control: Bump Standards-version to 4.7.0.
+  * debian/patches/:
+    + 0001-tests-compat-py39.py-Drop-py39compat-to-avoid-jaraco.patch:
+      Add patch to avoid using shim from external jaraco.test library.
+      Use import_helper and os_helper directly from stdlib test.support.
+      We do not need compatibility with python3.9 or earlier anyway.
+
+ -- Boyuan Yang <byang@debian.org>  Sat, 01 Jun 2024 22:16:04 -0400
+
 python-importlib-metadata (4.12.0-1+pexip24u5) pexip-bookworm; urgency=medium
 
   * New versioning scheme
