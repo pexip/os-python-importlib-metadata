@@ -16,7 +16,6 @@ ruff.toml
 towncrier.toml
 tox.ini
 .github/FUNDING.yml
-.github/dependabot.yml
 .github/workflows/main.yml
 docs/__init__.py
 docs/api.rst
@@ -32,6 +31,7 @@ importlib_metadata/_functools.py
 importlib_metadata/_itertools.py
 importlib_metadata/_meta.py
 importlib_metadata/_text.py
+importlib_metadata/_typing.py
 importlib_metadata/diagnose.py
 importlib_metadata/py.typed
 importlib_metadata.egg-info/PKG-INFO
